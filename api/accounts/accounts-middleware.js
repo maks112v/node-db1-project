@@ -11,7 +11,7 @@ exports.checkAccountPayload = (req, res, next) => {
     res
       .status(400)
       .json({ message: 'name of account must be between 3 and 100' });
-  } else if (NaN(req?.body?.budget)) {
+  } else if (isNaN(req?.body?.budget)) {
     res.status(400).json('budget of account must be a number');
   } else if (req?.body?.budget < 0 || req?.body?.budget > 1000000) {
     res
