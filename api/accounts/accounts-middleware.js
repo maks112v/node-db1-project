@@ -1,25 +1,29 @@
 const Accounts = require('./accounts-model.js');
 const db = require('../../data/db-config.js');
+const Yup = require('yup');
 
-exports.checkAccountPayload = (req, res, next) => {
-  if (req.body.name === undefined || req.body.budget === undefined) {
-    res.status(400).json({ message: 'name and budget are required' });
-  } else if (
-    req?.body?.name?.trim().length < 3 ||
-    req?.body?.name?.trim().length > 100
-  ) {
-    res
-      .status(400)
-      .json({ message: 'name of account must be between 3 and 100' });
-  } else if (isNaN(req?.body?.budget)) {
-    res.status(400).json('budget of account must be a number');
-  } else if (req?.body?.budget < 0 || req?.body?.budget > 1000000) {
-    res
-      .status(400)
-      .json({ message: 'budget of account is too large or too small' });
-  } else {
-    next();
-  }
+const payloadSchema = Yup.object().shape({
+  name: Yup.string()
+    .trim()
+    .required('name and budget are required')
+    .min(3, 'name of account must be between 3 and 100')
+    .max(100, 'name of account must be between 3 and 100'),
+  budget: Yup.number()
+    .typeError('must be a number')
+    .required('name and budget are required')
+    .min(0, 'budget of account is too large or too small')
+    .max(1000000, 'budget of account is too large or too small'),
+});
+
+exports.checkAccountPayload = async (req, res, next) => {
+  payloadSchema
+    .validate(req.body)
+    .then(() => {
+      next();
+    })
+    .catch((err) => {
+      res.status(400).json({ message: err.message });
+    });
 };
 
 exports.checkAccountNameUnique = async (req, res, next) => {
